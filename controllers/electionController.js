@@ -1,5 +1,3 @@
-
-
 const getUserInfo = async (req, res, next) => {
     try {
         res.json({ user: 123 });

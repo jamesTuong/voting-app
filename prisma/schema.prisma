@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  VOTER
+}
+
+model User {
+  id             Int              @id @default(autoincrement())
+  email          String           @unique
+  name           String?
+  age            Int?
+  address        String?
+  phone          String?
+  gender         String?
+  dateOfBirth    DateTime?
+  regionId       Int?
+  region         Region?          @relation(fields: [regionId], references: [id])
+  career         String?
+  Vote           Vote[]
+  UserOnElection UserOnElection[]
+  role           Role             @default(VOTER)
+}
+
+model Candidate {
+  id    Int    @id @default(autoincrement())
+  name  String
+  email String
+  phone String
+  Vote  Vote[]
+}
+
+model Election {
+  id             Int              @id @default(autoincrement())
+  title          String
+  type           String?
+  startDate      DateTime
+  endDate        DateTime
+  regionId       Int
+  totalVotes     Int              @default(0)
+  ElectionOnArea ElectionOnArea[]
+  Vote           Vote[]
+  UserOnElection UserOnElection[]
+}
+
+model ElectionOnArea {
+  id         Int      @id @default(autoincrement())
+  electionId Int
+  areaId     Int
+  election   Election @relation(fields: [electionId], references: [id])
+  area       Area     @relation(fields: [areaId], references: [id])
+}
+
+model UserOnElection {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  electionId Int
+  user       User     @relation(fields: [userId], references: [id])
+  election   Election @relation(fields: [electionId], references: [id])
+}
+
+model Area {
+  id             Int              @id @default(autoincrement())
+  name           String           @unique
+  Region         Region[]
+  ElectionOnArea ElectionOnArea[]
+}
+
+model Region {
+  id     Int    @id @default(autoincrement())
+  name   String @unique
+  lat    Float
+  long   Float
+  area   Area   @relation(fields: [areaId], references: [id])
+  areaId Int
+  User   User[]
+}
+
+model Post {
+  id        Int     @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean @default(false)
+  authorId  Int
+}
+
+model Vote {
+  id          Int       @id @default(autoincrement())
+  electionId  Int
+  candidateId Int
+  userId      Int
+  election    Election  @relation(fields: [electionId], references: [id])
+  candidate   Candidate @relation(fields: [candidateId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+}
